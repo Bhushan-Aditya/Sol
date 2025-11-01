@@ -8,9 +8,9 @@ import {
   Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BlurView } from '@react-native-community/blur';
+import LinearGradient from 'react-native-linear-gradient';
 import { GoogleButton, PaginationDots } from '../components';
-import { colors, typography, spacing, dimensions } from '../constants';
+import { colors, typography, spacing, dimensions, fontWeight } from '../constants';
 
 interface OnboardingScreen2Props {
   isActive?: boolean;
@@ -85,29 +85,30 @@ export const OnboardingScreen2: React.FC<OnboardingScreen2Props> = ({ isActive =
             />
           </Animated.View>
 
-          {/* Subtitle - overlapping the image with blur effect */}
-          <Animated.View
-            style={[
-              styles.subtitleContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
-            ]}
-          >
-            <BlurView
-              style={styles.blurContainer}
-              blurType="light"
-              blurAmount={15}
-              reducedTransparencyFallbackColor="rgba(255, 255, 255, 0.6)"
+          {/* Subtitle - overlapping the image with gradient fade */}
+          <View style={styles.subtitleContainer}>
+            <LinearGradient
+              colors={['#F5F5F0', '#F5F5F0', 'rgba(245, 245, 240, 0.6)', 'transparent']}
+              locations={[0, 0.4, 0.7, 1]}
+              start={{ x: 0.5, y: 1 }}
+              end={{ x: 0.5, y: 0 }}
+              style={styles.gradientFadeWrapper}
             >
               <View style={styles.textWrapper}>
-            <Text style={styles.subtitle}>
-              Your safe space to chat{'\n'}about anything, anytime
-            </Text>
+                <Animated.Text
+                  style={[
+                    styles.subtitle,
+                    {
+                      opacity: fadeAnim,
+                      transform: [{ translateY: slideAnim }],
+                    },
+                  ]}
+                >
+                  Your safe space to chat{'\n'}about anything, anytime
+                </Animated.Text>
               </View>
-            </BlurView>
-          </Animated.View>
+            </LinearGradient>
+          </View>
         </View>
 
         {/* Content Section - Below the image */}
@@ -201,12 +202,14 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
+    height: 160,
+    justifyContent: 'flex-end',
   },
-  blurContainer: {
+  gradientFadeWrapper: {
     width: '100%',
-    borderRadius: 0,
-    overflow: 'hidden',
-    backgroundColor: 'transparent',
+    height: '100%',
+    justifyContent: 'flex-end',
+    paddingBottom: spacing.lg,
   },
   textWrapper: {
     paddingHorizontal: spacing.lg,
@@ -218,7 +221,7 @@ const styles = StyleSheet.create({
     ...typography.h6,
     color: colors.text.intense.neutral,
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: fontWeight.heading,
     width: 296,
     height: 56,
   },
