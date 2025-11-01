@@ -1,0 +1,37 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/Inter-Bold.ttf",
+      "sha1": "0325b9b3992fa2fdc9c715730a33135696c68a39"
+    },
+    {
+      "path": "src/assets/fonts/Inter-Medium.ttf",
+      "sha1": "126d31d9fbb0d742763c266a1c2ace71b106e34a"
+    },
+    {
+      "path": "src/assets/fonts/Inter-Regular.ttf",
+      "sha1": "5c95e5d66572aeca303512ba41a8dde0cea92c80"
+    },
+    {
+      "path": "src/assets/fonts/Inter-SemiBold.ttf",
+      "sha1": "d48310d2f04c57af1bce0851e053be7b58b25dca"
+    },
+    {
+      "path": "src/assets/images/google-logo.png",
+      "sha1": "32179dda9c98d86f132f305916c19ec3a8baea23"
+    },
+    {
+      "path": "src/assets/images/onboarding-1.png",
+      "sha1": "bb7263661a55d9517e0cde1afe0cd31477dc311a"
+    },
+    {
+      "path": "src/assets/images/onboarding-2.png",
+      "sha1": "44069a0febad33e461d48d32bf15148ea42c54c8"
+    },
+    {
+      "path": "src/assets/images/onboarding-3.png",
+      "sha1": "939c429273d4488d35ab1a09f91929ce1a3bcce9"
+    }
+  ]
+}
