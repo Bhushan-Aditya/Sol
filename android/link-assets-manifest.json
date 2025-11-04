@@ -2,6 +2,14 @@
   "migIndex": 1,
   "data": [
     {
+      "path": "src/assets/fonts/AlbertSans-Regular.ttf",
+      "sha1": "bcc72cadb1c27fb8978163413df1168a15097e99"
+    },
+    {
+      "path": "src/assets/fonts/AlbertSans-SemiBold.ttf",
+      "sha1": "0cb9540bfa9a3ca5661cc91d552b28ab0b4bb6f3"
+    },
+    {
       "path": "src/assets/fonts/Inter-Bold.ttf",
       "sha1": "0325b9b3992fa2fdc9c715730a33135696c68a39"
     },
@@ -18,20 +26,28 @@
       "sha1": "d48310d2f04c57af1bce0851e053be7b58b25dca"
     },
     {
-      "path": "src/assets/images/google-logo.png",
+      "path": "src/assets/images/google_logo.png",
       "sha1": "32179dda9c98d86f132f305916c19ec3a8baea23"
     },
     {
-      "path": "src/assets/images/onboarding-1.png",
+      "path": "src/assets/images/onboarding_1.png",
       "sha1": "bb7263661a55d9517e0cde1afe0cd31477dc311a"
     },
     {
-      "path": "src/assets/images/onboarding-2.png",
+      "path": "src/assets/images/onboarding_2.png",
       "sha1": "44069a0febad33e461d48d32bf15148ea42c54c8"
     },
     {
-      "path": "src/assets/images/onboarding-3.png",
+      "path": "src/assets/images/onboarding_3.png",
       "sha1": "939c429273d4488d35ab1a09f91929ce1a3bcce9"
+    },
+    {
+      "path": "src/assets/images/phone.png",
+      "sha1": "5dd5494cdee8845fe2022081261008e5ad0fe4a4"
+    },
+    {
+      "path": "src/assets/images/setting_logo.png",
+      "sha1": "455fd742f403aa5294f96ed62c31b6c6c5a6d3cd"
     }
   ]
 }

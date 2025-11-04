@@ -11,12 +11,13 @@ import {
   Image,
   Animated,
   Easing,
-  Linking,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import { GoogleButton, PaginationDots } from '../components';
 import { colors, typography, spacing, dimensions, fontWeight } from '../constants';
+import { TermsScreen } from './TermsScreen';
+import { PrivacyScreen } from './PrivacyScreen';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -44,45 +45,43 @@ const ONBOARDING_SLIDES: OnboardingSlide[] = [
   },
 ];
 
-export const OnboardingContainer: React.FC = () => {
+interface OnboardingContainerProps {
+  onContinue?: () => void;
+}
+
+export const OnboardingContainer: React.FC<OnboardingContainerProps> = ({ onContinue }) => {
   const flatListRef = useRef<FlatList>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const scrollX = useRef(new Animated.Value(0)).current;
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / SCREEN_WIDTH);
-    if (index !== activeIndex && index >= 0 && index < ONBOARDING_SLIDES.length) {
-      setActiveIndex(index);
-      // Smooth fade animation for text transition
-      fadeAnim.setValue(0);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      }).start();
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+    {
+      useNativeDriver: false,
+      listener: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const scrollPosition = event.nativeEvent.contentOffset.x;
+        const index = Math.round(scrollPosition / SCREEN_WIDTH);
+        if (index !== activeIndex && index >= 0 && index < ONBOARDING_SLIDES.length) {
+          setActiveIndex(index);
+          // Smooth fade animation for text transition
+          fadeAnim.setValue(0);
+          Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 300,
+            easing: Easing.out(Easing.ease),
+            useNativeDriver: true,
+          }).start();
+        }
+      },
     }
-  };
+  );
 
-  const handleGoogleSignIn = async () => {
-    const googleLoginUrl = 'https://accounts.google.com/signin';
-    try {
-      console.log('Opening Google login URL:', googleLoginUrl);
-      if (await Linking.canOpenURL(googleLoginUrl)) {
-        await Linking.openURL(googleLoginUrl);
-        console.log('Successfully opened Google login');
-      } else {
-        console.warn('Cannot open Google login URL, trying direct open');
-        await Linking.openURL(googleLoginUrl);
-      }
-    } catch (error: any) {
-      console.error('Error opening Google login:', error);
-      // Direct fallback attempt
-      Linking.openURL(googleLoginUrl).catch((fallbackError) => {
-        console.error('Direct open also failed:', fallbackError);
-      });
-    }
+  const handleGoogleSignIn = () => {
+    console.log('Continue button pressed - navigating to chat');
+    onContinue?.();
   };
 
   const renderImageItem = ({ item }: { item: OnboardingSlide }) => {
@@ -144,7 +143,7 @@ export const OnboardingContainer: React.FC = () => {
           <View style={styles.contentSection}>
             {/* Pagination Dots */}
             <View style={styles.paginationContainer}>
-              <PaginationDots totalDots={3} activeIndex={activeIndex} />
+              <PaginationDots totalDots={3} scrollX={scrollX} screenWidth={SCREEN_WIDTH} />
             </View>
 
             {/* Google Button */}
@@ -156,13 +155,25 @@ export const OnboardingContainer: React.FC = () => {
             <View style={styles.footerContainer}>
               <Text style={styles.footerText}>
                 By continuing, you agree to our{'\n'}
-                <Text style={styles.footerLink}>Terms & Conditions</Text> and{' '}
-                <Text style={styles.footerLink}>Privacy Policy</Text>.
+                <Text style={styles.footerLink} onPress={() => setShowTerms(true)}>
+                  Terms & Conditions
+                </Text>
+                {' and '}
+                <Text style={styles.footerLink} onPress={() => setShowPrivacy(true)}>
+                  Privacy Policy
+                </Text>
+                .
               </Text>
             </View>
           </View>
       </View>
       </SafeAreaView>
+
+      {/* Terms & Conditions Modal */}
+      <TermsScreen visible={showTerms} onClose={() => setShowTerms(false)} />
+      
+      {/* Privacy Policy Modal */}
+      <PrivacyScreen visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
     </SafeAreaProvider>
   );
 };

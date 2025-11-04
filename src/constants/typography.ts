@@ -2,22 +2,15 @@ import { TextStyle, Platform } from 'react-native';
 
 // Font family definitions
 export const fontFamily = {
-  heading: Platform.select({
-    ios: 'SF Pro Display',
-    android: 'Inter',
-    default: 'System',
-  }) as TextStyle['fontFamily'],
-  body: Platform.select({
-    ios: 'SF Pro Text',
-    android: 'Inter',
-    default: 'System',
-  }) as TextStyle['fontFamily'],
+  heading: 'AlbertSans-SemiBold' as TextStyle['fontFamily'],
+  body: 'AlbertSans-SemiBold' as TextStyle['fontFamily'],
+  regular: 'AlbertSans-Regular' as TextStyle['fontFamily'],
 } as const;
 
 // Font weight definitions
 export const fontWeight = {
-  heading: '700' as TextStyle['fontWeight'], // Bold for headings
-  medium: '500' as TextStyle['fontWeight'],
+  heading: '600' as TextStyle['fontWeight'],
+  medium: '600' as TextStyle['fontWeight'],
   regular: '400' as TextStyle['fontWeight'],
 } as const;
 

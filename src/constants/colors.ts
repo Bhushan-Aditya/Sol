@@ -7,7 +7,9 @@ export const colors = {
   },
   background: {
     primary: '#F5F5F0',
+    chat: '#F9F5F2',
     button: '#2C2C2C',
+    userMessage: '#EADACC',
   },
   white: '#FFFFFF',
   google: {
