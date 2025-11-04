@@ -16,7 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChatInput, TypingIndicator, VoiceInterface } from '../components';
 import { colors, fontFamily, fontWeight, spacing } from '../constants';
-import Voice from '@react-native-voice/voice';
+import VoiceToText from '@appcitor/react-native-voice-to-text';
 import Tts from 'react-native-tts';
 
 interface Message {
@@ -57,6 +57,7 @@ export const ChatScreen: React.FC = () => {
   const [voiceState, setVoiceState] = useState<VoiceState>('idle');
   const [audioLevel, setAudioLevel] = useState(0);
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasSpeechStartedRef = useRef(false);
 
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
@@ -75,37 +76,53 @@ export const ChatScreen: React.FC = () => {
 
   // Setup Voice and TTS listeners
   useEffect(() => {
-    // Initialize Voice module
-    const initVoice = async () => {
+    const initVoiceAndTts = async () => {
       try {
         // Voice recognition event listeners
-        Voice.onSpeechStart = () => {
-          console.log('Speech started');
-        };
+        VoiceToText.addEventListener(VoiceToText.START, () => {
+          console.log('Voice recognition started');
+        });
 
-        Voice.onSpeechEnd = () => {
-          console.log('Speech ended');
-        };
+        VoiceToText.addEventListener(VoiceToText.BEGIN, () => {
+          console.log('Voice recognition begin - user started speaking');
+          hasSpeechStartedRef.current = true;
+          // Start silence timer when user actually begins speaking
+          startSilenceTimer();
+        });
 
-        Voice.onSpeechResults = (e) => {
-          if (e.value && e.value[0]) {
-            handleTranscription(e.value[0]);
+        VoiceToText.addEventListener(VoiceToText.END, () => {
+          console.log('Voice recognition ended');
+          hasSpeechStartedRef.current = false;
+        });
+
+        VoiceToText.addEventListener(VoiceToText.RESULTS, (event: any) => {
+          console.log('Voice FINAL results:', event);
+          // event.value is the complete transcribed string
+          if (event.value && typeof event.value === 'string' && event.value.trim().length > 0) {
+            console.log('Final transcription:', event.value);
+            handleTranscription(event.value);
           }
-        };
+        });
 
-        Voice.onSpeechPartialResults = (e) => {
-          // Update audio level based on speech detection
-          if (e.value && e.value.length > 0) {
-            setAudioLevel(0.7 + Math.random() * 0.3); // Simulate audio levels
-            resetSilenceTimer();
+        VoiceToText.addEventListener(VoiceToText.PARTIAL_RESULTS, (event: any) => {
+          console.log('Partial results:', event);
+          // event.value is the partial transcribed string
+          if (event.value && typeof event.value === 'string' && event.value.trim().length > 0) {
+            console.log('Partial text:', event.value);
+            // Update waveform animation
+            setAudioLevel(0.7 + Math.random() * 0.3);
+            // Reset silence timer as user is still speaking
+            if (hasSpeechStartedRef.current) {
+              resetSilenceTimer();
+            }
           }
-        };
+        });
 
-        Voice.onSpeechError = (e) => {
-          console.error('Speech error:', e);
+        VoiceToText.addEventListener(VoiceToText.ERROR, (event: any) => {
+          console.error('Voice error:', event);
           Alert.alert('Speech Error', 'Failed to recognize speech. Please try again.');
           setVoiceState('listening');
-        };
+        });
 
         // TTS event listeners
         Tts.addEventListener('tts-start', () => {
@@ -121,18 +138,26 @@ export const ChatScreen: React.FC = () => {
           console.log('TTS cancelled');
         });
       } catch (error) {
-        console.error('Error initializing voice:', error);
+        console.error('Error initializing voice and TTS:', error);
       }
     };
 
-    initVoice();
+    initVoiceAndTts();
 
     return () => {
       try {
-        Voice.destroy().then(Voice.removeAllListeners).catch(console.error);
+        VoiceToText.destroy().catch(console.error);
+        VoiceToText.removeAllListeners(VoiceToText.START);
+        VoiceToText.removeAllListeners(VoiceToText.BEGIN);
+        VoiceToText.removeAllListeners(VoiceToText.END);
+        VoiceToText.removeAllListeners(VoiceToText.RESULTS);
+        VoiceToText.removeAllListeners(VoiceToText.PARTIAL_RESULTS);
+        VoiceToText.removeAllListeners(VoiceToText.ERROR);
+
         Tts.removeAllListeners('tts-start');
         Tts.removeAllListeners('tts-finish');
         Tts.removeAllListeners('tts-cancel');
+
         if (silenceTimerRef.current) {
           clearTimeout(silenceTimerRef.current);
         }
@@ -204,27 +229,34 @@ export const ChatScreen: React.FC = () => {
       setVoiceState('listening');
       setAudioLevel(0.2);
 
-      // Check if Voice module is available
-      if (!Voice || typeof Voice.start !== 'function') {
-        throw new Error('Voice recognition module is not properly initialized');
+      // Clear any existing silence timer
+      if (silenceTimerRef.current) {
+        clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
       }
 
-      await Voice.start('en-US');
-      startSilenceTimer();
+      // Reset speech flag
+      hasSpeechStartedRef.current = false;
+
+      // Set recognition language to English (US)
+      await VoiceToText.setRecognitionLanguage('en-US');
+
+      // Start voice recognition
+      await VoiceToText.startListening();
+
+      console.log('Voice recognition started - waiting for speech to begin');
+
+      // Don't start silence timer immediately - wait for actual speech to begin
+      // The BEGIN event will start the timer when user actually starts speaking
     } catch (error: any) {
       console.error('Error starting voice recognition:', error);
 
       let errorMessage = 'Voice recognition is currently unavailable on this device.';
 
-      // Check for specific errors
-      if (error.message?.includes('not properly initialized') ||
-          error.message?.includes('startSpeech') ||
-          error.message?.includes('null')) {
-        errorMessage = 'Voice recognition service failed to initialize. This device may not support speech recognition, or the Google app needs to be updated.\n\nPlease ensure:\n- Google app is installed and updated\n- Internet connection is active\n- Microphone permission is granted';
-      } else if (error.message?.includes('recognizer not present') ||
-          error.message?.includes('Recognition service not available') ||
-          error.code === '2' || error.code === 2) {
-        errorMessage = 'Speech recognition service is not available. Please ensure:\n\n1. Google app is installed\n2. Microphone permission is granted\n3. Internet connection is active\n\nNote: This may not work on some emulators.';
+      if (error.message?.includes('permission') || error.code === 'PERMISSION_DENIED') {
+        errorMessage = 'Microphone permission is required for voice mode. Please grant the permission and try again.';
+      } else if (error.code === 'NOT_AVAILABLE' || error.message?.includes('not available')) {
+        errorMessage = 'Speech recognition service is not available on this device. Please ensure Google app is installed and updated.';
       }
 
       Alert.alert('Voice Recognition Error', errorMessage, [
@@ -240,17 +272,20 @@ export const ChatScreen: React.FC = () => {
     }
     silenceTimerRef.current = setTimeout(() => {
       handleSilenceDetected();
-    }, 2500); // 2.5 seconds of silence
+    }, 3500); // 3.5 seconds of silence - increased for better recognition
   };
 
   const resetSilenceTimer = () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+    }
     startSilenceTimer();
   };
 
   const handleSilenceDetected = async () => {
     console.log('Silence detected, stopping recording');
     try {
-      await Voice.stop();
+      await VoiceToText.stopListening();
       setAudioLevel(0);
     } catch (error) {
       console.error('Error stopping voice:', error);
@@ -375,17 +410,10 @@ export const ChatScreen: React.FC = () => {
 
     try {
       // Stop voice recognition if active
-      if (Voice) {
-        try {
-          await Voice.stop();
-        } catch (e) {
-          console.log('Voice.stop error:', e);
-        }
-        try {
-          await Voice.cancel();
-        } catch (e) {
-          console.log('Voice.cancel error:', e);
-        }
+      try {
+        await VoiceToText.stopListening();
+      } catch (e) {
+        console.log('VoiceToText.stopListening error:', e);
       }
 
       // Stop TTS if speaking
@@ -400,6 +428,9 @@ export const ChatScreen: React.FC = () => {
         clearTimeout(silenceTimerRef.current);
         silenceTimerRef.current = null;
       }
+
+      // Reset flags
+      hasSpeechStartedRef.current = false;
 
       // Reset states
       setVoiceMode(false);
